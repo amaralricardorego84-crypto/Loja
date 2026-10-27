@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loja de Ferramentas</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #fafafa;
+    color: #222;
+    max-width: 560px;
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 24px; }
+  form { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    min-width: 0;
+  }
+  #nome { flex: 3 1 160px; }
+  #preco, #qtd { flex: 1 1 80px; }
+  button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: #222;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+  }
+  li small { color: #888; display: block; }
+  .remover { background: none; color: #c00; padding: 4px 8px; }
+  #total { margin-top: 20px; text-align: right; font-weight: 600; }
+</style>
+</head>
+<body>
+  <h1>Loja de Ferramentas</h1>
+
+  <form id="form">
+    <input id="nome" placeholder="Produto" required maxlength="30">
+    <input id="preco" placeholder="Preço" type="number" step="0.01" min="0" inputmode="decimal" required>
+    <input id="qtd" placeholder="Qtd" type="number" min="1" inputmode="numeric" required>
+    <button>Adicionar</button>
+  </form>
+
+  <ul id="lista"></ul>
+  <div id="total"></div>
+
+<script>
+  const moeda = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
+
+  function desenhar() {
+    const lista = document.getElementById('lista');
+    lista.innerHTML = '';
+    let soma = 0;
+    produtos.forEach((p, i) => {
+      const sub = p.preco * p.qtd;
+      soma += sub;
+      const li = document.createElement('li');
+      li.innerHTML = `<div>${esc(p.nome)}<small>${p.qtd} × ${moeda(p.preco)}</small></div>
+                      <div>${moeda(sub)} <button class="remover" data-i="${i}">✕</button></div>`;
+      lista.appendChild(li);
+    });
+    document.getElementById('total').textContent =
+      produtos.length ? 'Total: ' + moeda(soma) : 'Nenhum produto cadastrado.';
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+  }
+
+  document.getElementById('form').addEventListener('submit', e => {
+    e.preventDefault();
+    produtos.push({
+      nome: nome.value.trim(),
+      preco: parseFloat(preco.value),
+      qtd: parseInt(qtd.value)
+    });
+    e.target.reset();
+    desenhar();
+  });
+
+  document.getElementById('lista').addEventListener('click', e => {
+    if (e.target.dataset.i !== undefined) {
+      produtos.splice(e.target.dataset.i, 1);
+      desenhar();
+    }
+  });
+
+  desenhar();
+</script>
+</body>
+</html>
